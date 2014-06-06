@@ -33,14 +33,6 @@
         <script type="text/javascript" src="/js/equalizer.js?20140605"></script>
         
             
-    
-        <script type="text/javascript">
-          window.vkAsyncInit = function() {
-            VK.init({
-              apiId: 4297865
-            });
-          };
-        </script>
         <script type="text/javascript" src="/js/social.js?20140411"></script>
         
 	</head>
@@ -57,14 +49,13 @@
 
     	<div id="dimmer" style="display:none;"></div>
  		<div id="modal_layer_wrap" style="display:none"><div id="modal_layer"></div></div>
- 
-    	<div id="vk_api_transport"></div>
-        <script type="text/javascript">
-		(function() {
-        	var el = document.createElement("script"); el.type = "text/javascript"; el.src = "//vk.com/js/api/openapi.js"; el.async = true;
-        	document.getElementById("vk_api_transport").appendChild(el);
-        })();
-	    </script>
+ 		
+        <script src="//vk.com/js/api/openapi.js" type="text/javascript"></script>
+		<script type="text/javascript">
+          VK.init({
+            apiId: 4297865
+          });
+        </script>
         
         
         <canvas id="equalizer" style="bottom:0; left:0; position:fixed; z-index:0;" height="300"></canvas>
@@ -133,7 +124,7 @@
 			
 			//Bind events
 			Utils.bind('Social.onLogin', function() {
-								
+						
 				Scene.search('');
 				
 			});

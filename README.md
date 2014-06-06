@@ -1,9 +1,9 @@
 # JavaScript Audio Player
-=========================
 
 This project was started as an experiment of new CSS and JavaScript features in modern browsers. Little bit later it became a good VK.com audio player with Last.fm support that I use every day)
 
 Try it yourself! Chrome browser recommended :)
+
 http://play.drigl.com
 
 ## Participation
