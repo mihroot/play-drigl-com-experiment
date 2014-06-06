@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<title>Drigl Play</title>
+        
+        <link rel="stylesheet" href="/css/common.css?20140605">
+		<script type="text/javascript" src="/js/common.js?20140605"></script>
+        
+        
+        <script type="text/javascript" src="/js/md5-min.js"></script>
+        <script type="text/javascript" src="/js/api/lastfm/lastfm.api.js"></script>
+        <script type="text/javascript" src="/js/api/lastfm/lastfm.api.cache.js"></script>
+        
+        <script type="text/javascript" src="/js/three.min.js"></script>
+        <script type="text/javascript" src="/js/tween.js"></script>
+        <script type="text/javascript" src="/js/CSS3DRenderer.js"></script>
+        
+        
+        <script type="text/javascript" src="/js/window.js?20140605"></script>
+        <script type="text/javascript" src="/js/scene.js?20140605"></script>
+        <script type="text/javascript" src="/js/player.js?20140605"></script>
+        <script type="text/javascript" src="/js/equalizer.js?20140605"></script>
+        
+            
+    
+        <script type="text/javascript">
+          window.vkAsyncInit = function() {
+            VK.init({
+              apiId: 4297865
+            });
+          };
+        </script>
+        <script type="text/javascript" src="/js/social.js?20140411"></script>
+        
+	</head>
+	<body UNSELECTABLE="on">
+    	<script>
+		  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+		  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+		  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+		  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+		
+		  ga('create', 'UA-49949400-1', 'drigl.com');
+		  ga('send', 'pageview');
+		</script>
+
+    	<div id="dimmer" style="display:none;"></div>
+ 		<div id="modal_layer_wrap" style="display:none"><div id="modal_layer"></div></div>
+ 
+    	<div id="vk_api_transport"></div>
+        <script type="text/javascript">
+		(function() {
+        	var el = document.createElement("script"); el.type = "text/javascript"; el.src = "//vk.com/js/api/openapi.js"; el.async = true;
+        	document.getElementById("vk_api_transport").appendChild(el);
+        })();
+	    </script>
+        
+        
+        <canvas id="equalizer" style="bottom:0; left:0; position:fixed; z-index:0;" height="300"></canvas>
+		<div id="container"></div>
+        
+        <div id="controls-hint" style="display:none; position:fixed; top:27px; left:15px; z-index:1;">
+            <b>[&larr;]</b> - Previous song,
+            <b>[&rarr;]</b> - Next song,
+            <b>[Space]</b> - Play/Pause
+        </div>
+        
+        <div id="vk-login" style="display:none;">
+        	<h2>Please sign in:</h2>
+            <p><a class="btn-sl btn-sl-big btn-sl-vk" onClick="return Social.VKLogin();" title="VK Login"><i class="ico-social ico-vk"></i><i class="btn-sl-separator separator-vk"></i>VK.com</a></p>
+        </div>
+        
+        
+        
+        <div id="loading-indicator" style="position:absolute; left:25px; top:25px; width:48px; height:48px;">
+        	<img src="/img/misc/ajax_loader_02.gif" width="48" height="48">
+        </div>
+
+        
+        <div id="controls" style="display:none;">
+            
+            <div id="controls-progress" class="center-absolute">
+            
+            	<div id="c-p-select"></div>
+                
+                <div id="c-p-loaded"></div>
+                <div id="c-p-played"></div>
+                
+                
+				<div id="c-p-t-left"></div>
+            </div>
+            
+            <div id="control-buttons" class="center-absolute">
+            	
+                <a id="control-repeat" class="control-btn squared mR20px" title="Repeat track" onClick="return Player.toggleRepeat();"><i class="glyphicon glyphicon-retweet"></i> </a>
+            
+            	<!--a class="control-btn squared mR20px" onClick="return Scene.playSimilar();" title="Play similar to this artist">Sim.</a-->
+            	
+                <a class="control-btn squared" onClick="return Player.prev();" title="Play previous - [&larr;]"><i class="glyphicon glyphicon-backward"></i></a>
+                <a id="control-play" class="control-btn squared" onClick="return Player.playPause();" title="Play/Pause - [Space]"><i class="glyphicon glyphicon-pause"></i></a>
+                <a class="control-btn squared" onClick="return Player.next();" title="Play next - [&rarr;]"><i class="glyphicon glyphicon-forward"></i></a>
+                
+                <a class="control-btn squared mL20px" onClick="return Scene.showSearch();" title="Search"><i class="glyphicon glyphicon-search"></i></a>
+            </div>
+            
+        </div>
+        
+        
+        <div id="user-info" style="display:none;">
+        	<a onClick="return Scene.search('');"><img id="user-info-ava" src="/img/misc/no_photo.gif" width="40" height="40"></a>
+            <div style="margin-left:50px;">
+            	<div id="user-info-name"></div>
+                <div align="right"><a id="user-logout" onClick="return Social.VKLogout();">Sign out</a></div>
+            </div>
+        </div>
+        
+        
+		
+        
+        
+        <script type="text/javascript">
+			
+			//Bind events
+			Utils.bind('Social.onLogin', function() {
+								
+				Scene.search('');
+				
+			});
+			
+			Utils.bind('Social.onLogout', function() {
+				
+				Scene.reset();
+				
+				document.getElementById('user-info').style.display	= 'none';
+				Player.hideControls();
+				
+			});
+			
+			Utils.bind('Social.onUserDataReceived', function() {
+				
+				var info = Social.getUserInfo();
+				document.getElementById('user-info').style.display = 'block';
+				document.getElementById('user-info-name').innerHTML = 'Hola, '+info.first_name+'!';
+				document.getElementById('user-info-ava').src = info.photo_50;
+				
+			});		
+			
+
+			Utils.bind('Social.onPlaylistItemsReceived', function(data) {
+				
+				Scene.addTracksToScene(data);
+					
+				Player.showControls();
+				Scene.hideLoader();			
+			});
+			
+			Utils.bind('Social.onTrackInfoUpdate', function(data) {
+				Scene.updateTrackInfo(data);
+			});
+			
+			
+			
+			Utils.bind('Player.onTrackSet', function(track) {
+				Scene.moveToObject(track['threeObject']);
+			});
+								
+			
+			
+			
+
+			
+
+			
+			Window.subscribers['onResize'].push(function() {
+				var el, width, left;
+				var elms = document.getElementsByClassName('center-absolute'); var l = elms.length;
+				for (var i = 0; i < l; i++) {
+					el = elms[i];
+					
+					width	= Utils.width(el);
+					left	= (Window.mwWidth-width)/2;
+						
+					el.style.left = left + 'px';
+					
+				}
+				
+			});
+			Window.onBodyResize();
+			
+			
+			
+			
+			
+			Social.init();
+			Scene.init().animate();
+			Player.init();
+
+		</script>
+
+	</body>
+</html>
