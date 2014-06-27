@@ -6,7 +6,7 @@
         
 		<meta name="apple-mobile-web-app-capable" content="yes">
 
-        <meta property="og:title" content="I recommend - Drigl Play" />
+        <meta property="og:title" content="Drigl Play" />
         <meta property="og:description" content="Great VK.com audio player with Last.fm similar artists support, 3D effects and graphic equalizer!" />
         <meta property="og:url" content="http://play.drigl.com" />
         <meta property="og:image" content="http://play.drigl.com/img/social/social_450x450.jpg" />
@@ -60,10 +60,18 @@
         </script>
         
         
+        <div class="share-wrap">
+        	<div class="inline vM"><div id="vk_like"></div></div>
+        </div>
+		<script type="text/javascript">
+       		VK.Widgets.Like("vk_like", {type: "mini"});
+        </script>
+        
+        
         <canvas id="equalizer" style="bottom:0; left:0; position:fixed; z-index:0;" height="300"></canvas>
 		<div id="container"></div>
             
-        <div id="controls-hint" style="display:none; position:fixed; top:27px; left:15px; z-index:1;">
+        <div id="controls-hint" style="display:none;">
             <b>[&larr;]</b> - Previous song,
             <b>[&rarr;]</b> - Next song,
             <b>[Space]</b> - Play/Pause,
