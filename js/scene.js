@@ -1,3 +1,15 @@
+var DEMO_TRACKS = [
+	{artist: "Digikid84", title: "Continuum", url: "http://cs4806.vk.me/u20109882/audios/fc7df7dfae28.mp3"},
+	{artist: "Electric Six", title: "Danger! High Voltage!", url: "http://cs4592.vk.me/u507070/audios/e913c75ba0be.mp3"},
+	{artist: "Scissor Sisters", title: "I Don't Feel Like Dancin'", url: "http://cs1328.vk.me/u5382519/audios/f88ef56f0cd9.mp3"},
+	{artist: "Pharrell Williams", title: "Happy", url: "http://cs9-4v4.vk.me/p4/7564cf29a2347d.mp3"},
+	{artist: "Van Halen", title: "Jump", url: "http://cs4244.vk.me/u2757316/audios/50c7ef9d0416.mp3"},
+	{artist: "Queen", title: "I want it all", url: "http://cs4594.vk.me/u59811637/audios/c3d9f9973a36.mp3"},
+	{artist: "Red Hot Chili Peppers", title: "Around The World", url: "http://cs4341.vk.me/u1393743/audios/6c20e044ab5c.mp3"},
+	{artist: "Avicii feat. Aloe Blacc", title: "Wake Me Up", url: "http://cs9-3v4.vk.me/p9/e9d0c253371aa4.mp3"}
+];
+
+
 var Element = function ( entry ) {
 
 	var dom = document.createElement( 'a' );
@@ -40,10 +52,8 @@ var Element = function ( entry ) {
 		event.stopPropagation();
 		
 		if(object != Scene._activeObect) {
-			//console.log(object.position.z);
 			Player.setTrack(entry);
 		} else {
-			//console.log(object.position.z);
 			//Player.playPause();
 		}
 		
@@ -140,13 +150,17 @@ Scene = {
 			if(event.target != document.body) {
 				return false;
 			}
-							
+					
 			if(event.which == 39) {
 				return Player.next();
 			} else if(event.which == 37) {
 				return Player.prev();
-			} else if(event.which == 32) {
+			} else if(event.which == 32) { //spacebar
 				return Player.playPause();
+			} else if(event.which == 70) { //f
+				return Scene.showSearch();
+			} else if(event.which == 73) { //i
+				return Scene.playSimilar();
 			}
 			return false;
 		}, false );
@@ -527,7 +541,9 @@ Scene = {
 			
 		Window.create({
 				'body': '<div id="search"><form class="mT25px" onSubmit="return Scene.search();"><label for="query" class="mR10px">Play similar to: </label><input id="query" type="text" value="" placeholder="'+ Playlist.items[ id ].artist.replace(/"/g, "&quot;") +'"><button id="button" class="mL5px">play</button></form></div>'
-			}, 'win-search');
+			}, 'win-search', function() {
+				ge('query').focus();
+			});
 			
 			
 	},
@@ -574,6 +590,20 @@ Scene = {
 			Player.setMode(PLAYER_MODE.PLAY_VK_PLAYLIST);
 			return Social.getUserAudio();
 		}
+		
+	},
+	
+	demo: function() {
+		
+		hide(ge('vk-login'));
+		
+		Player.setMode(PLAYER_MODE.PLAY_DEMO);
+		var tIDs = Playlist.addTracksFromVK(DEMO_TRACKS);
+		
+		//Trigger an event			
+		Utils.trigger('Social.onPlaylistItemsReceived', tIDs);
+						
+		return false;
 		
 	},
 	
@@ -691,7 +721,6 @@ Scene = {
 			Scene.move( 1 );
 		}
 		
-		//Equalizer.render();
 		if(Player._equalizer) {
 			Player._equalizer.draw();
 		}

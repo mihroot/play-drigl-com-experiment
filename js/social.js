@@ -111,7 +111,7 @@ Social = {
 	},
 	
 	VKCheckLoginStatus: function(response) {
-		
+
 		if(Social._logged) {
 			return false;
 		}

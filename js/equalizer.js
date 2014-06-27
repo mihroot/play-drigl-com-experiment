@@ -222,7 +222,9 @@ gEqualizer.prototype.reset = function( ) {
 	var methods		= {};
 	
 	
-	var _particles	= [];
+	var _2PI 		= 2 * Math.PI;
+	var _particles	= [],
+		_particlesNum;
 	
 	
 	// Plugin definition.
@@ -253,17 +255,18 @@ gEqualizer.prototype.reset = function( ) {
 						'12, 202, 186',
 						'255, 0, 111'];
 			
-		var i,  len = this._audioAnalyser.fftSize / 4,
-				width		= this._canvas_width, 
+		var i, 	width		= this._canvas_width, 
 				height		= this._canvas_height,
 				colorNum	= colors.length;
-			
-		for (i = 0; i < len; i++) {
+		
+		_particlesNum = this._audioAnalyser.fftSize / 4;
+		 	
+		for (i = 0; i < _particlesNum; i++) {
 				
 			_particles.push({
 				x: Math.random() * width,
 				y: Math.random() * height,
-				color: 'rgba(' + colors[Math.floor(Math.random() * colorNum)] + ', 0)',
+				color: 'rgb(' + colors[Math.floor(Math.random() * colorNum)] + ')',
 				size: 0,
 				opacity: Math.random() + 0.2
 			});
@@ -278,8 +281,8 @@ gEqualizer.prototype.reset = function( ) {
 
 		this._ctx.clearRect(0, 0, this._canvas_width, this._canvas_height);
 		
-		var i, len, p;
-		for (i = 0, len = _particles.length; i < len; i = i + 5) {
+		var i, p;
+		for (i = 0; i < _particlesNum; i = i + 5) {
 			
 			p = _particles[i];
 			
@@ -307,11 +310,12 @@ gEqualizer.prototype.reset = function( ) {
 				}
 			}
 			
-			var color = p.color.replace('0)', p.opacity + ')');
+			//Set opacity
+			this._ctx.globalAlpha = p.opacity;
 			
-			this._ctx.fillStyle = color;
+			this._ctx.fillStyle = p.color;
 			this._ctx.beginPath();
-			this._ctx.arc(p.x, p.y, p.size, 0, 2 * Math.PI, true);
+			this._ctx.arc(p.x, p.y, p.size, 0, _2PI, true);
 			this._ctx.closePath();
 			this._ctx.fill();
 			
@@ -578,6 +582,255 @@ gEqualizer.prototype.reset = function( ) {
 		_lastAvarage	= 0;
 
 	};
+	
+
+}(gEqualizer));
+
+
+
+/**
+ * Graphic Equalizer Plugin
+ * @author surunzi
+ * https://github.com/surunzi/VisualMusic/
+ */
+(function( gEq ) {
+	
+	var methods		= {};
+	
+	var _particleNum;
+	var _particles = [];
+	
+	var _2PI = Math.PI * 2;
+	
+	// Plugin definition.
+	gEq._pluginRegister('graph_05', function( method ) {
+		
+		if(typeof(method) === 'object' || !method) {
+			return methods.init.apply(this, arguments);
+		} else if(methods[method]) {
+			return methods[method].apply(this, Array.prototype.slice.call(arguments, 1));
+		} else {
+			throw 'Method \'' + method + '\' does not exists.';
+        }
+			
+	});
+
+
+	methods.init = function (userOpts) {
+		
+		var colors = [	'105, 210, 231',
+						'27, 103, 107',
+						'190, 242, 2',
+						'235, 229, 77',
+						'0, 205, 172',
+						'22, 147, 165',
+						'249, 212, 35',
+						'255, 78, 80',
+						'231, 32, 78',
+						'12, 202, 186',
+						'255, 0, 111'
+						];
+		
+		_particleNum = this._audioAnalyser.fftSize / 8;
+		
+		for(var i = 0; i < _particleNum; i++){
+			_particles.push( {
+				x: Math.round(Math.random() * this._canvas_width),
+				y: Math.round(Math.random() * this._canvas_height),
+				rad: Math.round(Math.random() * 10) + 15,
+				rgba: 'rgba('+colors[Math.floor(Math.random() * colors.length)]+', 1)',
+				vx: Math.round(Math.random() * 3) - 1.5,
+				vy: Math.round(Math.random() * 3) - 1.5
+			});
+		}
+
+	};
+	
+	methods.draw = function ( freqByteData ) {
+					
+		this._ctx.save();
+		
+		var i, j, total, avg, p, p2, factor;
+		
+		this._ctx.clearRect(0, 0, this._canvas_width, this._canvas_height);
+		
+		this._ctx.globalCompositeOperation = 'lighter';
+		this._ctx.linewidth = 0.5;
+	
+		for (i = 0, total = 0; i < _particleNum; i++) {
+			total += freqByteData[i];
+		}
+		avg = total / _particleNum;
+	
+		for(i = 0; i < _particleNum; i++){
+			
+			p = _particles[i];
+			factor = 1;
+			
+			for(j = 0; j < _particleNum; j++){
+			   p2 = _particles[j];
+			   if(p.rgba == p2.rgba && _findDistance(p, p2) < avg){
+				  this._ctx.strokeStyle = p.rgba;
+				  this._ctx.beginPath();
+				  this._ctx.moveTo(p.x, p.y);
+				  this._ctx.lineTo(p2.x, p2.y);
+				  this._ctx.stroke();
+				  factor += 0.6;
+			   }
+			}
+	
+			this._ctx.fillStyle		= p.rgba;
+			this._ctx.strokeStyle	= p.rgba;
+			
+			this._ctx.beginPath();
+			this._ctx.arc(p.x, p.y, p.rad * factor, 0, _2PI, true);
+			this._ctx.fill();
+			this._ctx.closePath();
+			
+			this._ctx.beginPath();
+			this._ctx.arc(p.x, p.y, (p.rad + 5) * factor, 0, _2PI, true);
+			this._ctx.stroke();
+			this._ctx.closePath();
+	
+			p.x += p.vx;
+			p.y += p.vy;
+			
+			if(p.x > this._canvas_width + p.rad) p.x = 0;
+			if(p.x < -p.rad) p.x = this._canvas_width;
+			if(p.y > this._canvas_height + p.rad) p.y = 0;
+			if(p.y < -p.rad) p.y = this._canvas_height;
+		}
+		
+		this._ctx.restore();
+	};
+	
+	methods.reset = function () {
+		
+		_particles		= [];
+
+
+	};
+	
+	
+	function _findDistance(p1, p2){  
+		return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
+	}
+	
+
+}(gEqualizer));
+
+
+
+/**
+ * Graphic Equalizer Plugin
+ * @author surunzi
+ * https://github.com/surunzi/VisualMusic/
+ */
+(function( gEq ) {
+	
+	var methods		= {};
+	
+	
+	var _sinAngle = [];
+	var _color;
+	
+	// Plugin definition.
+	gEq._pluginRegister('graph_06', function( method ) {
+		
+		if(typeof(method) === 'object' || !method) {
+			return methods.init.apply(this, arguments);
+		} else if(methods[method]) {
+			return methods[method].apply(this, Array.prototype.slice.call(arguments, 1));
+		} else {
+			throw 'Method \'' + method + '\' does not exists.';
+        }
+			
+	});
+
+
+	methods.init = function (userOpts) {
+		
+		var angleGap = Math.random() * 0.1 + 0.05,
+			angle = 0, angle2 = 0;
+		
+		var len = this._audioAnalyser.fftSize / 2 - 20;
+			
+		_sinAngle[0] = Math.sin(angle);
+		for (var i = 1; i < len; i++) {
+			_sinAngle.push(Math.sin(angle));
+			if (_sinAngle[i - 1] > 0 && _sinAngle[i] < 0 ||  _sinAngle[i - 1] < 0 && _sinAngle[i] > 0) {
+				angleGap = Math.random() * 0.1 + 0.05;
+			}
+			angle += angleGap;
+		}
+		
+		
+		_initColor(this._ctx, this._canvas_height);
+
+	};
+	
+	methods.draw = function ( freqByteData ) {
+					
+		this._ctx.save();
+		
+		var x, i, gap, xc, yc;
+		
+		var line	= [];
+		var len		= _sinAngle.length;
+		var halfH	= this._canvas_height / 2;
+		
+		this._ctx.clearRect(0, 0, this._canvas_width, this._canvas_height);
+		for (i = 0; i < len; i++) {
+			line.push(freqByteData[i] * _sinAngle[i]);
+		}
+	
+		this._ctx.shadowColor	= '#fffa47';
+		this._ctx.shadowBlur	= 15;
+		this._ctx.strokeStyle	= _color;
+		this._ctx.lineWidth		= 2;
+		
+		this._ctx.beginPath();
+		
+		x = 0;
+		gap = Math.ceil(this._canvas_width / len);
+		
+		this._ctx.moveTo(x, halfH);
+		for (i = 1; i < len - 2; i ++) {
+			xc = (x + x + gap) / 2;
+			yc = halfH - (line[i] + line[i + 1]) / 2;
+			this._ctx.quadraticCurveTo(x, halfH - line[i], xc, yc);
+			x += gap;
+		}
+		this._ctx.quadraticCurveTo(x, halfH - line[i], x + gap, halfH - line[i + 1]);
+		this._ctx.stroke();
+		
+		this._ctx.restore();
+		
+	};
+	
+	methods.reset = function () {
+		
+		_sinAngle		= [];	
+
+	};
+	
+	
+	function _initColor (ctx, height) {
+
+		_color = ctx.createLinearGradient(0, 0, 0, height);
+		
+		_color.addColorStop(0.1, '#ff5614');
+		_color.addColorStop(0.3, '#fffa47');
+		_color.addColorStop(0.4, '#f93b04');
+		_color.addColorStop(0.5, '#f93b04');
+		_color.addColorStop(0.6, '#fffa47');
+		_color.addColorStop(0.7, '#f93b04');
+		_color.addColorStop(0.75, '#f01800');
+		_color.addColorStop(0.8, '#fb7220');
+		_color.addColorStop(0.9, '#f93b04');
+		_color.addColorStop(1, '#f01800');
+		
+	}
 	
 
 }(gEqualizer));

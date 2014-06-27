@@ -995,10 +995,19 @@ img {border:none;}
 }
 
 #user-info-ava {
-	float:left; border-radius:3px;
+	float:left; border-radius:50%;
+	-webkit-transition: opacity 0.14s ease-in-out;
+	  -moz-transition: opacity 0.14s ease-in-out;
+	  -ms-transition: opacity 0.14s ease-in-out;
+	  -o-transition: opacity 0.14s ease-in-out;
+	  transition: opacity 0.14s ease-in-out;
 }
+#user-info-ava:HOVER {
+	opacity:0.6;
+}
+
 #user-info-name {
-	font-size:14px; margin-bottom:3px
+	font-size:14px; margin:4px 0 3px;
 }
 #user-logout {
 	font-size:12px;
