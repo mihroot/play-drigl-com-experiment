@@ -161,6 +161,8 @@ Scene = {
 				return Scene.showSearch();
 			} else if(event.which == 73) { //i
 				return Scene.playSimilar();
+			} else if(event.which == 84) { //t
+				return Scene.playTop();
 			}
 			return false;
 		}, false );
@@ -526,6 +528,23 @@ Scene = {
 		
 		var id = parseInt(Scene._activeDomObect.getAttribute('id'));
 		
+		Player.setMode(PLAYER_MODE.PLAY_SIMILAR_ARTISTS);
+		
+		return Scene.search(Playlist.items[ id ].artist);
+		
+	},
+	
+	
+	playTop: function() {
+		
+		if(!Scene._activeDomObect) {
+			return false;
+		}
+		
+		var id = parseInt(Scene._activeDomObect.getAttribute('id'));
+		
+		Player.setMode(PLAYER_MODE.PLAY_TOP_TRACKS);
+		
 		return Scene.search(Playlist.items[ id ].artist);
 		
 	},
@@ -534,11 +553,7 @@ Scene = {
 	showSearch: function() {
 		
 		var id = parseInt(Scene._activeDomObect.getAttribute('id'));
-
-		/*Window.create({
-				'body': '<div id="search">Play similar to <a onclick="return Scene.playSimilar();"><!--i class="glyphicon glyphicon-play"></i--> <b>'+ Playlist.items[ id ].artist +'</b> <!--(click to play)--></a> <form class="mT25px" onSubmit="return Scene.search();"><label for="query" class="mR10px">or enter artist name:</label><input id="query" type="text" value=""><button id="button" class="mL5px">play</button></form></div>'
-			}, 'win-search');*/
-			
+		
 		Window.create({
 				'body': '<div id="search"><form class="mT25px" onSubmit="return Scene.search();"><label for="query" class="mR10px">Play similar to: </label><input id="query" type="text" value="" placeholder="'+ Playlist.items[ id ].artist.replace(/"/g, "&quot;") +'"><button id="button" class="mL5px">play</button></form></div>'
 			}, 'win-search', function() {
@@ -583,8 +598,12 @@ Scene = {
 		Player.hideControls();
 		
 		if(q) {
-			Player.setMode(PLAYER_MODE.PLAY_SIMILAR_ARTISTS);
-			return Social.searchSimilar(q);
+			
+			if(Player.getMode() == PLAYER_MODE.PLAY_TOP_TRACKS) {
+				return Social.getTopTracks(q);
+			} else {
+				return Social.searchSimilar(q);
+			}
 		}
 		else {
 			Player.setMode(PLAYER_MODE.PLAY_VK_PLAYLIST);

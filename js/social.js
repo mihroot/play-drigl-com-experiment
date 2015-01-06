@@ -188,7 +188,7 @@ Social = {
 	
 	
 	
-	VKSearchAudio: function(q, performer_only) {
+	VKSearchAudio: function(q, performer_only, count) {
 					
 		if(!Social._logged)
 			return false;
@@ -197,6 +197,7 @@ Social = {
 		
 		var query = {	q: q,
 						performer_only: performer_only != undefined ? performer_only : 0,
+						count: count != undefined ? count : 30,
 						sort: 2 // 2 — popularity, 1 — duration, 0 - add date
 				};
 
@@ -438,6 +439,7 @@ Social = {
 		}});
 	},
 	
+	
 	LFMArtistGetSimilar: function(q, cb) {
 		
 		
@@ -474,13 +476,47 @@ Social = {
 
 		
 		
-										
-										
-		
-		
 		return false;
 	},
 	
+	
+	LFMArtistGetTopTracks: function(q, cb) {
+		
+		/* Load some artist info. */
+		Social.lastfm.artist.getTopTracks({
+										artist: q,
+										autocorrect: 1,
+										limit: Social._ItemsPerOnceLimit
+									}, {
+									
+											success: function(data){
+
+												var tracks = [];
+												if(data.toptracks && data.toptracks.track && isArray(data.toptracks.track)) {
+													tracks = data.toptracks.track;
+												}
+												
+												cb.call(Social, tracks);
+												
+											}, error: function(code, message){
+												
+												console.log(code, message);
+												
+												//TODO
+												//6 - "The artist you supplied could not be found"
+												if(code == 6) {
+													cb.call(Social, []);
+												}
+
+											}
+									}
+		);
+
+		
+		
+		return false;
+	
+	},
 	
 	
 	
@@ -529,6 +565,35 @@ Social = {
 		});
 		
 		return false;
+	},
+	
+	
+	getTopTracks: function(q) {
+		
+		Social.LFMArtistGetTopTracks(q, function(tracks) {
+
+			if(tracks.length) {
+				
+				console.log('LFMArtistGetTopTracks: ' + tracks.length + ' artists found');
+						
+				var i;
+				for(i in tracks) {
+					
+													
+					Social.VKSearchAudio(tracks[i].artist.name + ' ' + tracks[i].name, 0, 1);
+					
+				}
+																			
+			} else {
+				Scene.hideLoader();
+			}
+			
+													
+		});
+		
+		return false;
 	}
+	
+	
 }
 
