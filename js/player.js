@@ -48,7 +48,8 @@ Player = {
 		
 		//Due to unknown thoughts about Same-Origin Policy, next stuff is only working in Chrome browser	
 		//http://stackoverflow.com/questions/19708561/firefox-25-and-audiocontext-createjavascriptnote-not-a-function
-		if(navigator.userAgent.toLowerCase().indexOf('chrome') > -1) {
+		//UPD. Now all modern browsers have same issues. So I proxy audio through nginx.
+		//if(navigator.userAgent.toLowerCase().indexOf('chrome') > -1) {
 			
 			//Init audio context if supported
 			window.AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -99,7 +100,7 @@ Player = {
 				
 			}
 			
-		}
+		//}
 		
 	
 	},
@@ -398,6 +399,10 @@ Playlist = {
 		track.artist	= a.artist;
 		
 		track.audio.url			= a.url;
+		if(track.audio.url) {
+			track.audio.url = '/proxy.html?p=' + track.audio.url;
+		}
+
 		track.audio.duration	= a.duration;
 										
 		Playlist.items.push(track);
