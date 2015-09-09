@@ -373,18 +373,26 @@ Playlist = {
 		var tIDs = [];
 		
 		if(isArray(t)) {
-			var i; var track;
+			var i, track;
 			for(i in t) {
 				track = t[i];
 				if(typeof(track) == 'object') {
+					track.url = Playlist._prepareVKAudioUrl(track.url);
 					tIDs.push(Playlist.addTrack(track));
 				}
 			}
 		} else {
+
+			t.url = Playlist._prepareVKAudioUrl(t.url);
 			tIDs.push(Playlist.addTrack(t));
+		
 		}
 		
 		return tIDs;
+	},
+
+	_prepareVKAudioUrl: function(audio_url) {
+		return '/proxy.html?p=' + audio_url.replace(/\?.*/, '');
 	},
 	
 	addTrack: function(a) {
@@ -399,9 +407,6 @@ Playlist = {
 		track.artist	= a.artist;
 		
 		track.audio.url			= a.url;
-		if(track.audio.url) {
-			track.audio.url = '/proxy.html?p=' + track.audio.url;
-		}
 
 		track.audio.duration	= a.duration;
 										
